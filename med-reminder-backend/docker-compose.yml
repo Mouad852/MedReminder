@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  backend:
+    build: .
+    container_name: medreminder-backend
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    command: ['--replSet', 'rs0']
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+volumes:
+  mongo-data:
