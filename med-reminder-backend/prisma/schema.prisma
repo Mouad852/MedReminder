@@ -7,10 +7,63 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AppointmentStatus {
+  BOOKED
+  COMPLETED
+  CANCELLED
+}
+
+enum AppointmentType {
+  CONSULTATION
+  CHECKUP
+  FOLLOW_UP
+}
+
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+  role      UserRole   @default(PATIENT)
+  email     String     @unique
   password  String
-  fullName  String
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
+  appointments Appointment[]
+  doctor     Doctor?
+}
+
+model Appointment {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String            @db.ObjectId
+  user      User              @relation(fields: [userId], references: [id])
+  doctorId  String?           @db.ObjectId
+  doctor    Doctor?           @relation(fields: [doctorId], references: [id])
+  date      DateTime
+  time      String
+  type      AppointmentType
+  status    AppointmentStatus @default(BOOKED)
+  notes     String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model Doctor {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String       @unique @db.ObjectId
+  user         User         @relation(fields: [userId], references: [id])
+  specialty    String
+  location     String
+  phone        String
+  bio          String?
+  experience   Int?
+  appointments Appointment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
