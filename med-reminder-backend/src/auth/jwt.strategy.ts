@@ -1,6 +1,3 @@
-/* eslint-disable */
-/* prettier-ignore */
-
 /* eslint-disable prettier/prettier */
 
 import { Injectable } from '@nestjs/common';
@@ -18,7 +15,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly secret: string;
 
   constructor(config: ConfigService<Record<string, any>>) {
-    //eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const secret = config.get<string>('JWT_SECRET');
 
     if (typeof secret !== 'string' || !secret) {

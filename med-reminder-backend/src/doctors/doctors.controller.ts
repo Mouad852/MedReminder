@@ -9,13 +9,15 @@ import {
   Param,
   Delete,
   Req,
-  UseGuards
+  UseGuards,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { DoctorsService } from './doctors.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
+import { Logger } from '@nestjs/common';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -23,34 +25,62 @@ interface RequestWithUser extends Request {
 
 @Controller('doctors')
 export class DoctorsController {
+  private readonly logger = new Logger(DoctorsController.name);
+
   constructor(private readonly doctorsService: DoctorsService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateDoctorDto, @Req() req: RequestWithUser) {
-    return this.doctorsService.create(dto, req.user.userId);
+  async create(@Body() dto: CreateDoctorDto, @Req() req: RequestWithUser) {
+    try {
+      return await this.doctorsService.create(dto, req.user.userId);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Create doctor failed', error.stack);
+      else this.logger.error('Create doctor failed', String(error));
+      throw new InternalServerErrorException('Failed to create doctor');
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() dto: UpdateDoctorDto,
     @Req() req: RequestWithUser,
   ) {
-    const adminId = req.user.userId;
-    return this.doctorsService.update(id, dto, adminId);
+    try {
+      return await this.doctorsService.update(id, dto, req.user.userId);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Update doctor failed', error.stack);
+      else this.logger.error('Update doctor failed', String(error));
+      throw new InternalServerErrorException('Failed to update doctor');
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req: RequestWithUser) {
-    const adminId = req.user.userId;
-    return this.doctorsService.remove(id, adminId);
+  async remove(@Param('id') id: string, @Req() req: RequestWithUser) {
+    try {
+      return await this.doctorsService.remove(id, req.user.userId);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Delete doctor failed', error.stack);
+      else this.logger.error('Delete doctor failed', String(error));
+      throw new InternalServerErrorException('Failed to delete doctor');
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.doctorsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    try {
+      return await this.doctorsService.findOne(id);
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Fetch doctor failed', error.stack);
+      else this.logger.error('Fetch doctor failed', String(error));
+      throw error; // Let NotFoundException bubble up
+    }
   }
 }

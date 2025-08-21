@@ -1,73 +1,110 @@
 /* eslint-disable */
 /* prettier-ignore */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 
 @Injectable()
 export class DoctorsService {
-  constructor(private prisma: PrismaService) {
-    console.log('Prisma properties:', Object.keys(prisma));
-  }
+  private readonly logger = new Logger(DoctorsService.name);
+
+  constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateDoctorDto, adminId: string) {
-    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
-    if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Only admins can create doctor profiles');
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+      });
+      if (!admin || admin.role !== 'ADMIN')
+        throw new Error('Only admins can create doctor profiles');
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: dto.userId },
+      });
+      if (!user) throw new Error('User not found');
+
+      return await this.prisma.doctor.create({
+        data: {
+          userId: dto.userId,
+          specialty: dto.specialty,
+          location: dto.location,
+          phone: dto.phone,
+          bio: dto.bio,
+          experience: dto.experience,
+        },
+        include: { user: true },
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Create doctor failed', error.stack);
+      else this.logger.error('Create doctor failed', String(error));
+      throw error;
     }
-
-    // Ensure user exists and has role DOCTOR
-    const user = await this.prisma.user.findUnique({
-      where: { id: dto.userId },
-    });
-    if (!user) throw new Error('User not found');
-
-    return this.prisma.doctor.create({
-      data: {
-        userId: dto.userId, // <- must explicitly set userId
-        specialty: dto.specialty,
-        location: dto.location,
-        phone: dto.phone,
-        bio: dto.bio,
-        experience: dto.experience,
-      },
-      include: { user: true },
-    });
   }
 
   async findAll() {
-    return this.prisma.doctor.findMany({ include: { user: true } });
+    try {
+      return await this.prisma.doctor.findMany({ include: { user: true } });
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Fetch all doctors failed', error.stack);
+      else this.logger.error('Fetch all doctors failed', String(error));
+      throw error;
+    }
   }
 
   async findOne(id: string) {
-    const doctor = await this.prisma.doctor.findUnique({
-      where: { id },
-      include: { user: true, appointments: true },
-    });
-    if (!doctor) throw new NotFoundException('Doctor not found');
-    return doctor;
+    try {
+      const doctor = await this.prisma.doctor.findUnique({
+        where: { id },
+        include: { user: true, appointments: true },
+      });
+      if (!doctor) throw new NotFoundException('Doctor not found');
+      return doctor;
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Fetch doctor failed', error.stack);
+      else this.logger.error('Fetch doctor failed', String(error));
+      throw error;
+    }
   }
 
   async update(id: string, dto: UpdateDoctorDto, adminId: string) {
-    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
-    if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Only admins can update doctor profiles');
-    }
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+      });
+      if (!admin || admin.role !== 'ADMIN')
+        throw new Error('Only admins can update doctor profiles');
 
-    return this.prisma.doctor.update({
-      where: { id },
-      data: dto,
-      include: { user: true },
-    });
+      return await this.prisma.doctor.update({
+        where: { id },
+        data: dto,
+        include: { user: true },
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Update doctor failed', error.stack);
+      else this.logger.error('Update doctor failed', String(error));
+      throw error;
+    }
   }
 
   async remove(id: string, adminId: string) {
-    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
-    if (!admin || admin.role !== 'ADMIN') {
-      throw new Error('Only admins can remove doctors');
-    }
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId },
+      });
+      if (!admin || admin.role !== 'ADMIN')
+        throw new Error('Only admins can remove doctors');
 
-    return this.prisma.doctor.delete({ where: { id } });
+      return await this.prisma.doctor.delete({ where: { id } });
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        this.logger.error('Delete doctor failed', error.stack);
+      else this.logger.error('Delete doctor failed', String(error));
+      throw error;
+    }
   }
 }
