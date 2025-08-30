@@ -21,8 +21,17 @@ export class AppointmentsService {
 
   async create(dto: CreateAppointmentDto, userId: string) {
     try {
+      const appointmentDate = new Date(`${dto.date}T${dto.time}:00.000Z`);
       return await this.prisma.appointment.create({
-        data: { ...dto, userId },
+        data: {
+          doctorId: dto.doctorId,
+          type: dto.type,
+          status: dto.status,
+          date: appointmentDate, // ✅ now valid ISO date
+          time: dto.time,
+          notes: dto.notes,
+          userId,
+        },
       });
     } catch (error: unknown) {
       if (error instanceof Error)
