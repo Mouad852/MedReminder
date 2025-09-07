@@ -4,6 +4,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
+import { CreateAvailabilityDto } from './dto/create-availability.dto';
 
 @Injectable()
 export class DoctorsService {
@@ -45,7 +46,14 @@ export class DoctorsService {
 
   async findAll() {
     try {
-      return await this.prisma.doctor.findMany({ include: { user: true } });
+      return await this.prisma.doctor.findMany({
+        include: {
+          user: true,
+          availabilities: {
+            orderBy: { date: 'asc' }, // optional: sort availabilities by date
+          },
+        },
+      });
     } catch (error: unknown) {
       if (error instanceof Error)
         this.logger.error('Fetch all doctors failed', error.stack);
@@ -106,5 +114,24 @@ export class DoctorsService {
       else this.logger.error('Delete doctor failed', String(error));
       throw error;
     }
+  }
+
+  async addAvailability(dto: CreateAvailabilityDto) {
+    return await this.prisma.availability.create({
+      data: {
+        doctorId: dto.doctorId,
+        date: new Date(dto.date),
+        startTime: dto.startTime,
+        endTime: dto.endTime,
+        isBooked: dto.isBooked ?? false,
+      },
+    });
+  }
+
+  async getDoctorAvailabilities(doctorId: string) {
+    return await this.prisma.availability.findMany({
+      where: { doctorId },
+      orderBy: { date: 'asc' },
+    });
   }
 }

@@ -18,6 +18,7 @@ import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Request } from 'express';
 import { Logger } from '@nestjs/common';
+import { CreateAvailabilityDto } from './dto/create-availability.dto';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -70,6 +71,22 @@ export class DoctorsController {
       else this.logger.error('Delete doctor failed', String(error));
       throw new InternalServerErrorException('Failed to delete doctor');
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('availability')
+  async addAvailability(@Body() dto: CreateAvailabilityDto) {
+    return this.doctorsService.addAvailability(dto);
+  }
+
+  @Get(':id/availabilities')
+  async getAvailabilities(@Param('id') doctorId: string) {
+    return this.doctorsService.getDoctorAvailabilities(doctorId);
+  }
+
+  @Get()
+  async findAll() {
+    return this.doctorsService.findAll();
   }
 
   @Get(':id')

@@ -19,11 +19,21 @@ export class UsersService {
       if (existingUser) {
         throw new Error('Email already in use');
       }
+
+      const userData: any = {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        email: dto.email,
+        password: dto.password,
+        role: dto.role ?? 'PATIENT',
+        birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+        gender: dto.gender,
+        city: dto.city,
+        phone: dto.phone,
+      };
+
       const user = await this.prisma.user.create({
-        data: {
-          ...dto,
-          role: dto.role ?? 'PATIENT',
-        },
+        data: userData,
       });
       this.logger.log(`User created successfully: ${dto.email}`);
       return user;
@@ -64,6 +74,12 @@ export class UsersService {
           lastName: true,
           email: true,
           role: true,
+          notifications: true,
+          gender: true,
+          birthDate: true,
+          phone: true,
+          address: true,
+          city: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -88,14 +104,15 @@ export class UsersService {
   }
 
   async update(id: string, dto: UpdateUserDto) {
+    const updateData: any = { ...dto };
     try {
       this.logger.log(`Updating user with id: ${id}`);
       if (dto.password) {
-        dto.password = await bcrypt.hash(dto.password, 10);
+        updateData.password = await bcrypt.hash(dto.password, 10);
       }
       const user = await this.prisma.user.update({
         where: { id },
-        data: dto,
+        data: updateData,
       });
       this.logger.log(`User updated successfully: ${id}`);
       return user;

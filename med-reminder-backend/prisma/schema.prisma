@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -55,12 +56,17 @@ model Medication {
   user         User                  @relation(fields: [userId], references: [id])
 
   name         String
-  dosage       String
+  dosage       Int
+  dosageUnit   String    @default("mg")
+  frequency    String    @default("daily")
   form         MedicationForm        @default(PILL)
   timesPerDay  Int
   times        String[]
 
   startDate    DateTime
+  endDate         DateTime?
+  reminderMethod  String?               // optional: "app", "sms", "email"
+  enableReminders Boolean?              @default(true)
   notes        String?
   status       MedicationStatus      @default(ACTIVE)
   instruction  MedicationInstruction @default(NONE)
@@ -70,19 +76,41 @@ model Medication {
 }
 
 model User {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  firstName String
-  lastName  String
-  role      UserRole   @default(PATIENT)
-  email     String     @unique
-  password  String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  isDeleted Boolean  @default(false)
-  appointments Appointment[]
-  doctor     Doctor?
-   medications Medication[]
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  firstName      String
+  lastName       String
+  role           UserRole      @default(PATIENT)
+  email          String        @unique
+  password       String
+  phone          String?
+  gender         String?
+  birthDate      DateTime?
+  address        String?       
+  city           String       
+  country        String?       
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  isDeleted      Boolean       @default(false)
+
+  // Relations
+  appointments   Appointment[]
+  medications    Medication[]
+  notifications  Notification[]
+  doctor         Doctor?
 }
+
+model Notification {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String                @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // 'APPOINTMENT' or 'MEDICATION'
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  sendAt    DateTime // when the notification should be triggered
+}
+
+
 
 model Appointment {
   id        String            @id @default(auto()) @map("_id") @db.ObjectId
@@ -90,6 +118,8 @@ model Appointment {
   user      User              @relation(fields: [userId], references: [id])
   doctorId  String?           @db.ObjectId
   doctor    Doctor?           @relation(fields: [doctorId], references: [id])
+  doctorName String?
+  location  String?
   date      DateTime
   time      String
   type      AppointmentType
@@ -97,6 +127,20 @@ model Appointment {
   notes     String?
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+}
+
+model Availability {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  doctorId  String   @db.ObjectId
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+
+  date      DateTime // Specific day
+  startTime String   // Example: "09:00"
+  endTime   String   // Example: "12:00"
+  isBooked  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Doctor {
@@ -109,6 +153,7 @@ model Doctor {
   bio          String?
   experience   Int?
   appointments Appointment[]
+  availabilities Availability[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }

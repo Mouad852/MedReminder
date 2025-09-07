@@ -1,4 +1,5 @@
 /* eslint-disable */
+/* prettier-ignore */
 import {
   Injectable,
   NotFoundException,
@@ -9,22 +10,56 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { GetMedicationDto } from './dto/get-medication.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class MedicationsService {
   private readonly logger = new Logger(MedicationsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(dto: CreateMedicationDto, userId: string) {
     try {
-      return await this.prisma.medication.create({
+      const medication = await this.prisma.medication.create({
         data: {
           ...dto,
           userId,
           startDate: new Date(dto.startDate),
+          endDate: dto.endDate ? new Date(dto.endDate) : undefined,
         },
       });
+
+      // Only schedule notifications for today if within medication period
+      const today = new Date();
+      const startDate = new Date(dto.startDate);
+      const endDate = dto.endDate ? new Date(dto.endDate) : startDate;
+
+      // Check if today is within the medication period
+      if (today >= startDate && today <= endDate) {
+        const times = dto.times || [];
+
+        for (const timeStr of times) {
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          const notifDate = new Date(today);
+          notifDate.setHours(hours, minutes, 0, 0);
+
+          // Only schedule future notifications for today
+          if (notifDate > new Date()) {
+            await this.notificationsService.scheduleNotification(
+              userId,
+              'MEDICATION',
+              `Time to take your medication: ${dto.name}.
+              Dosage: ${dto.dosage}.`,
+              notifDate,
+            );
+          }
+        }
+      }
+
+      return medication;
     } catch (error) {
       this.logger.error(
         'Create medication failed',
@@ -77,6 +112,7 @@ export class MedicationsService {
       data: {
         ...dto,
         startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
       },
     });
   }

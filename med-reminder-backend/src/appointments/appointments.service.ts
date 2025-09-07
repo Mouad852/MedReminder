@@ -12,27 +12,57 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { GetAppointmentDto } from './dto/get-appointment.dto';
 import { AppointmentStatus } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AppointmentsService {
   private readonly logger = new Logger(AppointmentsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async create(dto: CreateAppointmentDto, userId: string) {
     try {
-      const appointmentDate = new Date(`${dto.date}T${dto.time}:00.000Z`);
-      return await this.prisma.appointment.create({
+      const appointmentDate = new Date(`${dto.date}T${dto.time}:00`);
+
+      const appointment = await this.prisma.appointment.create({
         data: {
-          doctorId: dto.doctorId,
+          doctorId: dto.doctorId || null,
+          doctorName: dto.doctorName || null,
+          location: dto.location || null,
           type: dto.type,
           status: dto.status,
-          date: appointmentDate, // ✅ now valid ISO date
+          date: appointmentDate,
           time: dto.time,
           notes: dto.notes,
           userId,
         },
       });
+
+      const doctorName = dto.doctorName || 'your doctor';
+      const oneDayBefore = new Date(appointmentDate);
+      oneDayBefore.setDate(oneDayBefore.getDate() - 1); // go back 1 day
+      oneDayBefore.setHours(10, 0, 0, 0);
+
+      // Schedule notification 1 day before
+      await this.notificationsService.scheduleNotification(
+        userId,
+        'APPOINTMENT',
+        `Your appointment with ${doctorName} is tomorrow at ${dto.time}`,
+        oneDayBefore,
+      );
+
+      // Schedule notification 2 hours before
+      await this.notificationsService.scheduleNotification(
+        userId,
+        'APPOINTMENT',
+        `Your appointment with ${doctorName} is in 2 hours at ${dto.time}`,
+        new Date(appointmentDate.getTime() - 2 * 60 * 60 * 1000),
+      );
+
+      return appointment;
     } catch (error: unknown) {
       if (error instanceof Error)
         this.logger.error('Create failed', error.stack);
@@ -54,10 +84,30 @@ export class AppointmentsService {
           where.status = query.status as AppointmentStatus;
         } else throw new Error(`Invalid status value: ${query.status}`);
       }
-      return this.prisma.appointment.findMany({
+
+      // Fetch appointments
+      const appointments = await this.prisma.appointment.findMany({
         where,
-        include: { user: true, doctor: true },
+        include: { user: true, doctor: { include: { user: true } } },
       });
+
+      const now = new Date();
+
+      // Update past appointments
+      const updatedAppointments = await Promise.all(
+        appointments.map(async (appt) => {
+          if (appt.status === 'BOOKED' && new Date(appt.date) < now) {
+            return await this.prisma.appointment.update({
+              where: { id: appt.id },
+              data: { status: 'COMPLETED' },
+              include: { user: true, doctor: { include: { user: true } } },
+            });
+          }
+          return appt;
+        }),
+      );
+
+      return updatedAppointments;
     } catch (error: unknown) {
       if (error instanceof Error)
         this.logger.error('Fetch all failed', error.stack);
@@ -70,8 +120,9 @@ export class AppointmentsService {
     try {
       const appointment = await this.prisma.appointment.findUnique({
         where: { id },
-        include: { user: true, doctor: true },
+        include: { user: true, doctor: { include: { user: true } } },
       });
+
       if (!appointment) throw new NotFoundException('Appointment not found');
       if (appointment.userId !== userId)
         throw new ForbiddenException('No access to this appointment');

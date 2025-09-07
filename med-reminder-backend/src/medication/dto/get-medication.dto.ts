@@ -10,4 +10,12 @@ export class GetMedicationDto {
   @IsOptional()
   @IsString()
   name?: string; // for searching medications by name
+
+  @IsOptional()
+  @IsString()
+  frequency?: string;
+
+  @IsOptional()
+  @IsString()
+  reminderMethod?: string;
 }

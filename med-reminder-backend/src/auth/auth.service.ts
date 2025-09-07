@@ -21,9 +21,16 @@ export class AuthService {
       const existing = await this.usersService.findByEmail(data.email);
       if (existing) throw new ConflictException('Email already in use');
 
-      // ✅ Hash only here
       const hashed = await bcrypt.hash(data.password, 10);
-      await this.usersService.create({ ...data, password: hashed });
+
+      const userData = {
+        ...data,
+        password: hashed,
+        birthDate: data.birthDate ? new Date(data.birthDate) : undefined,
+        phone: data.phone,
+      };
+
+      await this.usersService.create(userData);
 
       this.logger.log(`Successfully registered user: ${data.email}`);
       return { message: 'User registered successfully' };
@@ -55,6 +62,7 @@ export class AuthService {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          city: user.city,
         },
       };
     } catch (error: any) {

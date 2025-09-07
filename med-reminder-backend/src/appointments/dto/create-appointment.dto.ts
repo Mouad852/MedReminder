@@ -5,7 +5,8 @@ import {
   IsNotEmpty,
   IsOptional,
   IsDateString,
-  IsEnum
+  IsEnum,
+  isString
 } from 'class-validator';
 import { AppointmentStatus, AppointmentType } from '@prisma/client';
 
@@ -13,6 +14,10 @@ export class CreateAppointmentDto {
   @IsOptional()
   @IsString()
   doctorId?: string;
+
+  @IsOptional()
+  @IsString()
+  doctorName?: string;
 
   @IsNotEmpty()
   @IsEnum(AppointmentType)
@@ -24,6 +29,10 @@ export class CreateAppointmentDto {
 
   @IsDateString()
   date: string;
+
+  @IsOptional()
+  @IsString()
+  location?: string;
 
   @IsString()
   @IsNotEmpty()

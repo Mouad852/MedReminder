@@ -16,10 +16,10 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 interface RequestWithUser extends Request {
@@ -105,3 +105,4 @@ export class UsersController {
     }
   }
 }
+//

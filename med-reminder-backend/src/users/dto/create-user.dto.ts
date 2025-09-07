@@ -4,8 +4,11 @@ import {
   IsEnum,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MinLength,
+  IsObject,
+  IsDateString,
 } from 'class-validator';
 import { UserRole } from '@prisma/client';
 
@@ -26,5 +29,33 @@ export class CreateUserDto {
   password: string;
 
   @IsEnum(UserRole)
-  role?: UserRole; // optional, default to PATIENT if not provided
+  @IsOptional()
+  role?: UserRole;
+
+  @IsObject()
+  @IsOptional()
+  notifications?: {
+    email?: boolean;
+    sms?: boolean;
+    push?: boolean;
+  };
+
+  // 👇 New optional fields
+  @IsString()
+  @IsOptional()
+  gender?: string;
+
+  @IsDateString()
+  @IsOptional()
+  birthDate?: Date;
+
+  @IsString() @IsOptional() phone?: string;
+
+  @IsString() @IsOptional() address?: string;
+
+  @IsString() @IsOptional() city?: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
 }
