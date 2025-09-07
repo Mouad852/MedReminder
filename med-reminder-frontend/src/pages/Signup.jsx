@@ -1,6 +1,9 @@
 import Logo from "../components/LightLogo";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { register } from "../services/authService";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -11,7 +14,35 @@ const RegistrationForm = () => {
     confirmPassword: "",
     gender: "",
     birthDate: "",
+    city: "",
+    phone: "",
   });
+
+  const cities = [
+    "Casablanca",
+    "Marrakech",
+    "Rabat",
+    "Fes",
+    "Tangier",
+    "Agadir",
+    "Meknes",
+    "Oujda",
+    "Kenitra",
+    "Tetouan",
+    "Safi",
+    "El Jadida",
+    "Nador",
+    "Beni Mellal",
+    "Taza",
+    "Mohammedia",
+    "Khouribga",
+    "Settat",
+    "Larache",
+    "Salé",
+  ];
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,9 +52,32 @@ const RegistrationForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
+
+    if (!formData.city) {
+      toast.error("City is required");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      const { confirmPassword, ...dataToSend } = formData;
+      const response = await register(dataToSend);
+      console.log("Registration successful:", response);
+      toast.success("Registration successful! Please login.");
+      window.location.href = "/";
+    } catch (error) {
+      console.error(
+        "Registration failed:",
+        error.response?.data || error.message
+      );
+      toast.error("Registration failed. Check your inputs.");
+    }
   };
 
   return (
@@ -95,7 +149,7 @@ const RegistrationForm = () => {
 
             {/* Password and Confirm Password */}
             <div className="flex flex-col md:flex-row justify-between gap-4 mb-5">
-              <div className="w-full">
+              <div className="w-full relative">
                 <label
                   htmlFor="password"
                   className="block mb-2 text-left text-gray-800"
@@ -103,16 +157,23 @@ const RegistrationForm = () => {
                   Password
                 </label>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   name="password"
                   placeholder="Enter your Password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#1e2740] bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#1e2740] bg-white pr-10"
                 />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-10 cursor-pointer text-gray-600"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
               </div>
-              <div className="w-full">
+
+              <div className="w-full relative">
                 <label
                   htmlFor="confirmPassword"
                   className="block mb-2 text-left text-gray-800"
@@ -120,11 +181,64 @@ const RegistrationForm = () => {
                   Confirm Password
                 </label>
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
                   name="confirmPassword"
                   placeholder="Confirm your Password"
                   value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#1e2740] bg-white pr-10"
+                />
+                <span
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-10 cursor-pointer text-gray-600"
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              </div>
+            </div>
+
+            {/* City and Phone */}
+            <div className="flex flex-col md:flex-row justify-between gap-4 mb-5">
+              {/* City (Required) */}
+              <div className="w-full">
+                <label
+                  htmlFor="city"
+                  className="block mb-2 text-left text-gray-800 "
+                >
+                  City <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#1e2740] bg-white hover:cursor-pointer"
+                >
+                  <option value="">-- Select a city --</option>
+                  {cities.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Phone */}
+              <div className="w-full">
+                <label
+                  htmlFor="phone"
+                  className="block mb-2 text-left text-gray-800"
+                >
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="Enter your phone number"
+                  value={formData.phone}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#1e2740] bg-white"
                 />

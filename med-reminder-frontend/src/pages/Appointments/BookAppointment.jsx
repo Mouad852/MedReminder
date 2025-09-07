@@ -1,5 +1,9 @@
-import React, { useState } from "react";
-import { specialties, doctors } from "../../utils/BookAppointmentData";
+import React, { useState, useEffect } from "react";
+import {
+  createAppointment,
+  getDoctors,
+} from "../../services/appointmentService";
+import toast from "react-hot-toast";
 import {
   CalendarIcon,
   UserIcon,
@@ -14,9 +18,10 @@ import {
 } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { useNavigate } from "react-router-dom"; // add this
+import { useNavigate } from "react-router-dom";
 
 const BookAppointmentPage = () => {
+  const [doctors, setDoctors] = useState([]);
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -24,6 +29,10 @@ const BookAppointmentPage = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [appointmentType, setAppointmentType] = useState("");
+  const [specialties, setSpecialties] = useState([]);
+  const [cities, setCities] = useState([]); // list of all cities where doctors are
+  const [userCity, setUserCity] = useState(""); // selected city
 
   const specialtyIcons = {
     Cardiology: <HeartPulse className="inline mr-2 text-red-500" size={18} />,
@@ -38,20 +47,74 @@ const BookAppointmentPage = () => {
   };
 
   const filteredDoctors = doctors.filter(
-    (doc) => doc.specialty === selectedSpecialty
+    (doc) => doc.specialty === selectedSpecialty && doc.location === userCity
   );
-  const availableDates = selectedDoctor
+  const availableDates = selectedDoctor?.availableDates
     ? Object.keys(selectedDoctor.availableDates)
     : [];
 
-  const handleConfirm = () => {
-    if (selectedDoctor && selectedDate && selectedTime) {
-      alert(
-        `Booked with ${selectedDoctor.name} on ${selectedDate} at ${selectedTime}`
+  const handleConfirm = async () => {
+    if (!selectedDoctor || !selectedDate || !selectedTime || !appointmentType) {
+      toast.error(
+        "❌ Please select a doctor, date, time, and appointment type."
+      );
+      return;
+    }
+
+    try {
+      await createAppointment({
+        doctorId: selectedDoctor.id,
+        date: selectedDate,
+        time: selectedTime,
+        type: appointmentType, // ✅ make sure this is sent
+      });
+
+      toast.success(
+        `✅ Appointment booked with ${
+          selectedDoctor.name
+        } on ${selectedDate} at ${selectedTime} (${appointmentType.replace(
+          "_",
+          " "
+        )})`
       );
       navigate("/appointments");
+    } catch (error) {
+      console.error("Failed to book appointment:", error);
+      toast.error("❌ Failed to book appointment. Please try again later.");
     }
   };
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await getDoctors();
+
+        const transformed = res.map((doc) => {
+          const availableDates = {};
+          doc.availabilities.forEach((slot) => {
+            const date = slot.date.split("T")[0];
+            if (!availableDates[date]) availableDates[date] = [];
+            availableDates[date].push(slot.startTime);
+          });
+          return { ...doc, availableDates };
+        });
+
+        setDoctors(transformed);
+
+        // collect specialties
+        const specs = [...new Set(transformed.map((d) => d.specialty))];
+        setSpecialties(specs);
+
+        // collect cities
+        const citiesList = [...new Set(transformed.map((d) => d.location))];
+        setCities(citiesList);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   return (
     <>
@@ -89,27 +152,59 @@ const BookAppointmentPage = () => {
           )}
 
           {step === 2 && (
-            <div className="space-y-6 mt-8">
-              <h2 className="text-xl font-semibold text-gray-700">
-                How would you like to proceed?
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">
+                Choose Your City
               </h2>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <select
+                value={userCity}
+                onChange={(e) => setUserCity(e.target.value)}
+                className="border rounded-xl px-4 py-2 w-full"
+              >
+                <option value="">-- Select City --</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
                 <button
                   onClick={() => {
+                    if (!userCity) {
+                      toast.error("❌ Please select a city first.");
+                      return;
+                    }
                     setFlowType("doctor");
                     setStep(3);
                   }}
-                  className="flex-1 border border-blue-600 text-blue-600 px-4 py-3 rounded-xl hover:bg-blue-50 transition font-medium hover:cursor-pointer"
+                  disabled={!userCity}
+                  className={`flex-1 border px-4 py-3 rounded-xl transition font-medium ${
+                    userCity
+                      ? "border-blue-600 text-blue-600 hover:bg-blue-50 cursor-pointer"
+                      : "border-gray-300 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
                   <UserIcon className="inline-block mr-2" size={18} /> Select
                   Doctor First
                 </button>
+
                 <button
                   onClick={() => {
+                    if (!userCity) {
+                      toast.error("❌ Please select a city first.");
+                      return;
+                    }
                     setFlowType("date");
                     setStep(3);
                   }}
-                  className="flex-1 border border-blue-600 text-blue-600 px-4 py-3 rounded-xl hover:bg-blue-50 transition font-medium hover:cursor-pointer"
+                  disabled={!userCity}
+                  className={`flex-1 border px-4 py-3 rounded-xl transition font-medium ${
+                    userCity
+                      ? "border-blue-600 text-blue-600 hover:bg-blue-50 cursor-pointer"
+                      : "border-gray-300 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
                   <CalendarIcon className="inline-block mr-2" size={18} />{" "}
                   Select Date First
@@ -135,7 +230,7 @@ const BookAppointmentPage = () => {
                           : "border-gray-300 text-gray-700 hover:bg-gray-50"
                       }`}
                     >
-                      {doc.name} -{" "}
+                      {doc.user.name} -{" "}
                       <span className="text-sm text-gray-500">
                         {doc.specialty}
                       </span>
@@ -194,12 +289,35 @@ const BookAppointmentPage = () => {
               )}
 
               {selectedTime && (
-                <button
-                  onClick={handleConfirm}
-                  className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold hover:cursor-pointer"
-                >
-                  ✅ Confirm Appointment
-                </button>
+                <div className="mt-4 space-y-4">
+                  <h2 className="text-lg font-semibold text-gray-700 mb-2">
+                    Select Appointment Type
+                  </h2>
+                  <div className="flex gap-3">
+                    {["CONSULTATION", "CHECKUP", "FOLLOW_UP"].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setAppointmentType(type)}
+                        className={`px-4 py-2 rounded-lg font-medium border transition hover:cursor-pointer ${
+                          appointmentType === type
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {type.replace("_", " ")}
+                      </button>
+                    ))}
+                  </div>
+
+                  {appointmentType && (
+                    <button
+                      onClick={handleConfirm}
+                      className="mt-4 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold hover:cursor-pointer"
+                    >
+                      ✅ Confirm Appointment
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -286,12 +404,35 @@ const BookAppointmentPage = () => {
               )}
 
               {selectedTime && (
-                <button
-                  onClick={handleConfirm}
-                  className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold hover:cursor-pointer"
-                >
-                  ✅ Confirm Appointment
-                </button>
+                <div className="mt-4 space-y-4">
+                  <h2 className="text-lg font-semibold text-gray-700 mb-2">
+                    Select Appointment Type
+                  </h2>
+                  <div className="flex gap-3">
+                    {["CONSULTATION", "CHECKUP", "FOLLOW_UP"].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setAppointmentType(type)}
+                        className={`px-4 py-2 rounded-lg font-medium border transition hover:cursor-pointer ${
+                          appointmentType === type
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {type.replace("_", " ")}
+                      </button>
+                    ))}
+                  </div>
+
+                  {appointmentType && (
+                    <button
+                      onClick={handleConfirm}
+                      className="mt-4 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition font-semibold hover:cursor-pointer"
+                    >
+                      ✅ Confirm Appointment
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}

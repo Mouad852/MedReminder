@@ -1,27 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import {
+  getMedications,
+  deleteMedication,
+} from "../../services/medicationService";
 
 const DisplayMedications = () => {
-  const [medications, setMedications] = useState([
-    {
-      id: "1",
-      name: "Lisinopril",
-      dosage: "10mg",
-      frequency: "Once daily",
-      nextDose: "8:00 AM",
-      pillColor: "blue",
-    },
-    {
-      id: "2",
-      name: "Metformin",
-      dosage: "500mg",
-      frequency: "Twice daily",
-      nextDose: "7:00 PM",
-      pillColor: "green",
-    },
-  ]);
+  const [medications, setMedications] = useState([]);
+
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const data = await getMedications();
+        setMedications(data);
+      } catch (error) {
+        console.error("Failed to fetch medications:", error);
+      }
+    };
+
+    fetchMedications(); // initial fetch
+    const interval = setInterval(fetchMedications, 60000); // refresh every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const navigate = useNavigate();
 
@@ -29,9 +32,47 @@ const DisplayMedications = () => {
     navigate(`/medications/edit?id=${medication.id}`);
   };
 
-  const handleDelete = (id) => {
-    setMedications(medications.filter((m) => m.id !== id));
-    console.log(`Medication with ID ${id} has been removed`);
+  const handleDelete = async (id) => {
+    try {
+      await deleteMedication(id); // call backend
+      setMedications(medications.filter((m) => m.id !== id));
+    } catch (error) {
+      console.error("Failed to delete medication:", error);
+    }
+  };
+
+  const getNextDoseTime = (medication) => {
+    if (!medication.times || medication.times.length === 0) return "N/A";
+
+    const now = new Date();
+    const today = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+    // Convert each time string to a Date object
+    const doseTimes = medication.times.map((timeStr) => {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      const doseDate = new Date(today);
+      doseDate.setHours(hours, minutes, 0, 0);
+      return doseDate;
+    });
+
+    // Find the next dose that hasn't happened yet
+    const nextDose = doseTimes.find((doseTime) => doseTime > now);
+
+    // If all doses already passed, return first dose of tomorrow
+    if (!nextDose) {
+      const firstDoseTomorrow = new Date(doseTimes[0]);
+      firstDoseTomorrow.setDate(firstDoseTomorrow.getDate() + 1);
+      return firstDoseTomorrow.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    // Format the next dose time
+    return nextDose.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const handleAddMedication = () => {
@@ -103,14 +144,15 @@ const DisplayMedications = () => {
               <h3 className="font-semibold text-lg">{medication.name}</h3>
               <div className="flex items-center mt-1">
                 <span
-                  className={`w-3 h-3 rounded-full bg-${medication.pillColor}-500 mr-2`}
+                  className={`w-3 h-3 rounded-full bg-$ mr-2`}
+                  style={{ backgroundColor: medication.pillColor }}
                 ></span>
                 <span className="text-sm text-gray-600">
                   {medication.dosage}
                 </span>
               </div>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 hover:cursor-pointer">
               <button
                 onClick={() => onEdit(medication)}
                 className="text-blue-600 hover:text-blue-800"
@@ -120,7 +162,7 @@ const DisplayMedications = () => {
               </button>
               <button
                 onClick={() => onDelete(medication.id)}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600 hover:text-red-800 hover:cursor-pointer"
                 aria-label="Delete"
               >
                 <TrashIcon className="w-5 h-5" />
@@ -134,7 +176,7 @@ const DisplayMedications = () => {
             </div>
             <div>
               <span className="text-gray-500">Next dose:</span>
-              <span className="ml-1">{medication.nextDose}</span>
+              <span className="ml-1">{getNextDoseTime(medication)}</span>
             </div>
           </div>
         </div>
@@ -148,18 +190,18 @@ const DisplayMedications = () => {
           </div>
           <div className="text-gray-700">{medication.dosage}</div>
           <div className="text-gray-700">{medication.frequency}</div>
-          <div className="text-gray-700">{medication.nextDose}</div>
+          <div className="text-gray-700">{getNextDoseTime(medication)}</div>
           <div className="flex justify-center space-x-4">
             <button
               onClick={() => onEdit(medication)}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 hover:text-blue-800 cursor-pointer"
               aria-label="Edit"
             >
-              <EditIcon className="w-5 h-5" />
+              <EditIcon className="w-5 h-5 " />
             </button>
             <button
               onClick={() => onDelete(medication.id)}
-              className="text-red-600 hover:text-red-800"
+              className="text-red-600 hover:text-red-800 hover:cursor-pointer"
               aria-label="Delete"
             >
               <TrashIcon className="w-5 h-5" />
@@ -217,7 +259,7 @@ const DisplayMedications = () => {
 
         {/* Table Header */}
         <div className="hidden md:block relative z-10">
-          <div className="bg-gray-100 rounded-t-lg p-4">
+          <div className="bg-gray-100 rounded-t-lg px-6 py-4">
             <div className="grid grid-cols-5 gap-4 text-sm font-medium text-gray-600">
               <div className="flex items-center space-x-2">
                 <span>🧪</span>
@@ -254,16 +296,22 @@ const DisplayMedications = () => {
         {/* Empty State */}
         {medications.length === 0 && (
           <div className="relative z-10 text-center py-12 bg-white rounded-lg">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <button
+              className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 hover:cursor-pointer"
+              onClick={handleAddMedication}
+            >
               <PlusIcon className="w-12 h-12 text-gray-400" />
-            </div>
+            </button>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               No medications yet
             </h3>
             <p className="text-gray-600 mb-6">
               Start by adding your first medication
             </p>
-            <Button onClick={handleAddMedication} className="shadow-md">
+            <Button
+              onClick={handleAddMedication}
+              className="shadow-md hover:cursor-pointer"
+            >
               <PlusIcon className="w-4 h-4 mr-2" />
               Add Your First Medication
             </Button>
