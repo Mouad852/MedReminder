@@ -41,7 +41,7 @@
 
 | **Sign Up Page** | **Dashboard** | **Medication List** |
 |------------------|---------------|-------------------|
-| ![Sign Up](screenshots/Screenshot%2025202025-09-09%202520234604.png) | ![Dashboard](screenshots/dashboard.png) | ![Medications](screenshots/medications.png) |
+| ![Sign Up](screenshots/sign-up.png) | ![Dashboard](screenshots/dashboard.png) | ![Medications](screenshots/medications.png) |
 
 | **Book Appointment** | **Appointments List** | **Add Medication** |
 |--------------------|---------------------|------------------|
