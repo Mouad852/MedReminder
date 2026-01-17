@@ -135,44 +135,47 @@ Copy code
 - Node.js (v18+)
 - Docker & Docker Compose
 
-### Installation & Running
+## 🚀 Getting Started
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Mouad852/medreminder.git
    cd medreminder
-Backend Setup
 
-bash
-Copy code
-cd backend
-npm install
-npx prisma generate
-npx prisma migrate dev
-Frontend Setup
+2. **Backend Setup**
+   ```bash
+   Copy code
+   cd backend
+   npm install
+   npx prisma generate
+   npx prisma migrate dev
 
-bash
-Copy code
-cd frontend
-npm install
-Run with Docker (Recommended)
+3. **Frontend Setup**
+   ```bash
+   Copy code
+   cd frontend
+   npm install
 
-bash
-Copy code
-docker-compose up --build
+4. **Run with Docker** (Recommended)
+   ```bash
+   Copy code
+   docker-compose up --build
 Frontend: http://localhost:5173
 
 Backend API: http://localhost:3000
 
-Run without Docker
+5. **Run without Docker**
+   ```bash
+   Copy code
+   # Backend
+   cd backend && npm run start:dev
+   
+   # Frontend (in another terminal)
+   cd frontend && npm run dev
 
-bash
-Copy code
-# Backend
-cd backend && npm run start:dev
 
-# Frontend (in another terminal)
-cd frontend && npm run dev
+
+
 📈 Future Enhancements
 Mobile App (React Native / Flutter)
 
@@ -187,3 +190,16 @@ Analytics Dashboard for healthcare providers
 Multi-language Support
 
 Voice-Activated Reminders (Google Assistant/Alexa integration)
+
+
+
+
+
+## 🎬 Demo Video
+
+You can watch a live demo of the MedReminder application on YouTube:
+
+[![Watch the Demo]](https://youtu.be/sdr5R-KdctQ)
+
+
+
