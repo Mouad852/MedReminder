@@ -37,17 +37,19 @@
 
 ## 🖼️ Screenshots
 
+> All screenshots are stored in the `screenshots/` folder.
+
 | **Sign Up Page** | **Dashboard** | **Medication List** |
-|------------------|---------------|---------------------|
-| ![Sign Up](Screenshot%202025-09-09%20234604.png) | ![Dashboard](Screenshot%202025-09-10%20000039.png) | ![Medications](Screenshot%202025-09-10%20000321.png) |
+|------------------|---------------|-------------------|
+| ![Sign Up](screenshots/Screenshot/25202025-09-09/2520234604.png) | ![Dashboard](screenshots/dashboard.png) | ![Medications](screenshots/medications.png) |
 
 | **Book Appointment** | **Appointments List** | **Add Medication** |
-|----------------------|------------------------|--------------------|
-| ![Book Appointment](Screenshot%202025-09-09%20235910.png) | ![Appointments](Screenshot%202025-09-09%20235333.png) | ![Add Medication](Screenshot%202025-09-09%20235449.png) |
+|--------------------|---------------------|------------------|
+| ![Book Appointment](screenshots/book-appointment.png) | ![Appointments](screenshots/appointments.png) | ![Add Medication](screenshots/add-medication.png) |
 
 | **Specialty Selection** | **Appointment Details** | **Footer** |
-|-------------------------|--------------------------|------------|
-| ![Specialty](Screenshot%202025-09-09%20234836.png) | ![Appointment Details](Screenshot%202025-09-09%20235131.png) | ![Footer](Screenshot%202025-09-10%20000122.png) |
+|------------------------|-----------------------|------------|
+| ![Specialty](screenshots/specialty.png) | ![Appointment Details](screenshots/appointment-details.png) | ![Footer](screenshots/footer.png) |
 
 ---
 
@@ -57,43 +59,49 @@
 - **React** – UI framework
 - **Tailwind CSS** – Styling and responsive design
 - **JavaScript/TypeScript** – Frontend logic
+- **Vite** – Build tool
+- **Axios** – API calls
+- **React Router** – Navigation
 
 ### **Backend**
 - **NestJS** – Node.js framework for scalable backend
 - **Prisma ORM** – Database management and migrations
-- **JWT** – Authentication and authorization
+- **JWT / Passport** – Authentication and authorization
+- **Socket.IO** – Real-time notifications
+- **Bull / Redis** – Background jobs for reminders
 
 ### **Database**
-- **PostgreSQL** / **SQLite** – Relational database
+- **MongoDB** – NoSQL database
 
 ### **DevOps & Deployment**
-- **Docker** – Containerization for consistent environments
+- **Docker** – Containerization
 - **Docker Compose** – Multi-container orchestration
-- **Cron Jobs** – Scheduled reminders and notifications
 
 ---
 
 ## 📁 Project Structure
 
-```
 medreminder/
-├── frontend/           # React application
-│   ├── src/
-│   │   ├── components/ # Reusable UI components
-│   │   ├── pages/      # Application pages (Home, Medications, Appointments, etc.)
-│   │   ├── services/   # API calls and services
-│   │   └── styles/     # Tailwind and custom CSS
-│   └── public/
-├── backend/            # NestJS application
-│   ├── src/
-│   │   ├── modules/    # Feature modules (users, medications, appointments)
-│   │   ├── guards/     # Authentication guards
-│   │   ├── services/   # Business logic
-│   │   └── prisma/     # Prisma schema and migrations
-│   └── docker/
-├── docker-compose.yml  # Multi-container setup
+├── frontend/
+│ ├── src/
+│ │ ├── components/
+│ │ ├── pages/
+│ │ ├── services/
+│ │ └── styles/
+│ └── public/
+├── backend/
+│ ├── src/
+│ │ ├── modules/
+│ │ ├── guards/
+│ │ ├── services/
+│ │ └── prisma/
+│ └── docker/
+├── screenshots/ # Project screenshots
+├── docker-compose.yml
 └── README.md
-```
+
+yaml
+Copy code
 
 ---
 
@@ -102,7 +110,6 @@ medreminder/
 ### Prerequisites
 - Node.js (v18+)
 - Docker & Docker Compose
-- PostgreSQL (if not using SQLite)
 
 ### Installation & Running
 
@@ -110,116 +117,49 @@ medreminder/
    ```bash
    git clone https://github.com/yourusername/medreminder.git
    cd medreminder
-   ```
+Backend Setup
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   npm install
-   npx prisma generate
-   npx prisma migrate dev
-   ```
+bash
+Copy code
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate dev
+Frontend Setup
 
-3. **Frontend Setup**
-   ```bash
-   cd frontend
-   npm install
-   ```
+bash
+Copy code
+cd frontend
+npm install
+Run with Docker (Recommended)
 
-4. **Run with Docker (Recommended)**
-   ```bash
-   docker-compose up --build
-   ```
-   The app will be available at: `http://localhost:5173` (frontend) and `http://localhost:3000` (backend API).
+bash
+Copy code
+docker-compose up --build
+Frontend: http://localhost:5173
 
-5. **Run without Docker**
-   ```bash
-   # Backend
-   cd backend && npm run start:dev
-   
-   # Frontend (in another terminal)
-   cd frontend && npm run dev
-   ```
+Backend API: http://localhost:3000
 
----
+Run without Docker
 
-## 📄 API Endpoints (Sample)
+bash
+Copy code
+# Backend
+cd backend && npm run start:dev
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | User registration |
-| POST | `/api/auth/login` | User login |
-| GET | `/api/medications` | Get user medications |
-| POST | `/api/medications` | Add new medication |
-| GET | `/api/appointments` | Get user appointments |
-| POST | `/api/appointments` | Book new appointment |
-| PUT | `/api/appointments/:id` | Update appointment |
-| DELETE | `/api/medications/:id` | Delete medication |
+# Frontend (in another terminal)
+cd frontend && npm run dev
+📈 Future Enhancements
+Mobile App (React Native / Flutter)
 
----
+AI-Powered Recommendations for medication timing
 
-## 🧪 Testing
+Family Sharing – Allow family members to monitor adherence
 
-- **Backend Tests**: Unit and integration tests using Jest
-- **Frontend Tests**: Component tests with React Testing Library
-- **E2E Tests**: Playwright/Cypress for user flow validation
+Telemedicine Integration – Virtual consultations
 
-Run tests:
-```bash
-# Backend tests
-cd backend && npm test
+Analytics Dashboard for healthcare providers
 
-# Frontend tests
-cd frontend && npm test
-```
+Multi-language Support
 
----
-
-## 📈 Future Enhancements
-
-- [ ] **Mobile App** (React Native / Flutter)
-- [ ] **AI-Powered Recommendations** for medication timing
-- [ ] **Family Sharing** – Allow family members to monitor adherence
-- [ ] **Telemedicine Integration** – Virtual consultations
-- [ ] **Analytics Dashboard** for healthcare providers
-- [ ] **Multi-language Support**
-- [ ] **Voice-Activated Reminders** (Google Assistant/Alexa integration)
-
----
-
-## 👥 Team
-
-This project was developed as part of an academic project at **INPT (Institut National des Postes et Télécommunications)** by:
-- **Abdelkarim Ezzhar ELIDRISSIMr**
-- **Brahim BENIKEN**
-- **Mouad CHAOUNI**
-
-**Supervisor**: Mr. Abdessalam EN-NOUAARY
-
----
-
-## 📜 License
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🤝 Contributing
-Contributions are welcome! Please fork the repository and submit a pull request with detailed descriptions of your changes.
-
----
-
-## 📞 Contact & Support
-- **Email**: MedReminder@gmail.com
-- **Phone**: +212 123-456789
-- **Address**: Number, Street, City, Country
-
----
-
-## 🌐 Social Media
-- **Facebook**: MedReminder Facebook
-- **Instagram**: MedReminder Instagram
-- **Twitter/X**: MedReminder X
-
----
-
-*Last Updated: September 2025*
+Voice-Activated Reminders (Google Assistant/Alexa integration)
