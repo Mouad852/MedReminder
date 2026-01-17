@@ -34,22 +34,46 @@
 - Medication intake history
 
 ---
-
 ## 🖼️ Screenshots
 
 > All screenshots are stored in the `screenshots/` folder.
 
-| **Sign Up Page** | **Dashboard** | **Medication List** |
-|------------------|---------------|-------------------|
-| ![Sign Up](screenshots/sign-up.png) | ![Dashboard](screenshots/dashboard.png) | ![Medications](screenshots/medications.png) |
+### Sign Up Page
+![Sign Up](screenshots/sign-up.png)  
+*User registration page with email/password fields and sign-up button.*
 
-| **Book Appointment** | **Appointments List** | **Add Medication** |
-|--------------------|---------------------|------------------|
-| ![Book Appointment](screenshots/book-appointment.png) | ![Appointments](screenshots/appointments.png) | ![Add Medication](screenshots/add-medication.png) |
+### Dashboard
+![Dashboard](screenshots/dashboard.png)  
+*Main dashboard showing today’s medications, upcoming appointments, and quick actions.*
 
-| **Specialty Selection** | **Appointment Details** | **Footer** |
-|------------------------|-----------------------|------------|
-| ![Specialty](screenshots/specialty.png) | ![Appointment Details](screenshots/appointment-details.png) | ![Footer](screenshots/footer.png) |
+### Medication List
+![Medications](screenshots/medications.png)  
+*List of all medications with details like dosage, frequency, and next intake time.*
+
+### Book Appointment
+![Book Appointment](screenshots/book-appointment.png)  
+*Form to schedule a new appointment with a doctor by specialty, city, and date.*
+
+### Appointments List
+![Appointments](screenshots/appointments.png)  
+*Overview of all upcoming and past appointments with status indicators.*
+
+### Add Medication
+![Add Medication](screenshots/add-medication.png)  
+*Page to add a new medication including dosage, schedule, and reminders.*
+
+### Specialty Selection
+![Specialty](screenshots/specialty.png)  
+*Dropdown or selection of doctor specialties when booking an appointment.*
+
+### Appointment Details
+![Appointment Details](screenshots/appointment-details.png)  
+*Detailed view of a single appointment with options to mark as done or reschedule.*
+
+### Footer
+![Footer](screenshots/footer.png)  
+*Footer section with contact info, social media links, and app version.*
+
 
 ---
 
@@ -115,7 +139,7 @@ Copy code
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/medreminder.git
+   git clone https://github.com/Mouad852/medreminder.git
    cd medreminder
 Backend Setup
 
