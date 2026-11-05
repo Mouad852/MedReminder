@@ -1,205 +1,99 @@
-# 📋 MedReminder – Medication & Appointment Management System
+# MedReminder — medication and appointment management
 
-## 📌 Overview
-**MedReminder** is a full-stack web application designed to help patients manage their medications and medical appointments effectively. The application sends reminders to ensure medication adherence and timely attendance of appointments, improving healthcare management for individuals, especially those with chronic conditions.
+MedReminder is a full-stack healthcare-management project for recording medications, tracking appointments, and surfacing reminders in a personal dashboard. It is a portfolio application; it is not presented as clinical software or as a substitute for medical advice.
 
----
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="MedReminder dashboard" width="82%">
+</p>
 
-## ✨ Key Features
+## What the project demonstrates
 
-### 👤 User Management
-- User registration and secure authentication using JWT
-- Personal profile management (update info, view history)
+- JWT-based user authentication and profile management.
+- Medication records with dosage, frequency, and intake schedules.
+- Appointment discovery and status tracking.
+- In-app and email-notification workflows, with background jobs backed by Bull and Redis.
+- A React/Tailwind frontend paired with a NestJS API and MongoDB.
 
-### 💊 Medication Management
-- Add, edit, and delete medications
-- Set dosage, frequency, and intake times
-- Daily medication reminders
-- View today's medications and adherence history
+## Architecture
 
-### 🗓️ Appointment Management
-- Book appointments with doctors by specialty, city, and date
-- View upcoming and past appointments
-- Receive appointment reminders via notifications
-- Manage appointment status (Upcoming, Done)
+```mermaid
+flowchart LR
+  Browser[React + Vite frontend] --> API[NestJS API]
+  API --> DB[(MongoDB)]
+  API --> Queue[Bull + Redis]
+  Queue --> Notifications[Reminder and notification jobs]
+```
 
-### 🔔 Smart Notifications
-- In-app notifications for medications and appointments
-- Email reminders for upcoming events
-- Multi-channel reminder system
+## Technology stack
 
-### 📊 Dashboard & Analytics
-- Personalized dashboard with today's medications and next appointments
-- Adherence rate tracking
-- Medication intake history
+| Area | Technologies |
+| --- | --- |
+| Frontend | React, Vite, Tailwind CSS, React Router, Axios |
+| Backend | NestJS, JWT, Passport, Socket.IO |
+| Data and jobs | MongoDB, Prisma, Bull, Redis |
+| Local environment | Docker and Docker Compose |
 
----
-## 🖼️ Screenshots
+## Repository layout
 
-> All screenshots are stored in the `screenshots/` folder.
+```text
+med-reminder-frontend/   React client
+med-reminder-backend/    NestJS API and local Compose configuration
+screenshots/             checked-in UI evidence
+```
 
-### Sign Up Page
-![Sign Up](screenshots/sign-up.png)  
-*User registration page with email/password fields and sign-up button.*
+## Screens
 
-### Dashboard
-![Dashboard](screenshots/dashboard.png)  
-*Main dashboard showing today’s medications, upcoming appointments, and quick actions.*
+| Sign up | Medication list |
+| --- | --- |
+| ![Sign-up screen](screenshots/sign-up.png) | ![Medication list](screenshots/medications.png) |
 
-### Medication List
-![Medications](screenshots/medications.png)  
-*List of all medications with details like dosage, frequency, and next intake time.*
+| Appointment booking | Dashboard |
+| --- | --- |
+| ![Appointment booking](screenshots/book-appointment.png) | ![Dashboard](screenshots/dashboard.png) |
 
-### Book Appointment
-![Book Appointment](screenshots/book-appointment.png)  
-*Form to schedule a new appointment with a doctor by specialty, city, and date.*
+## Local setup
 
-### Appointments List
-![Appointments](screenshots/appointments.png)  
-*Overview of all upcoming and past appointments with status indicators.*
+Prerequisites: Node.js 18+, Docker Desktop, and the services/configuration required by the backend environment.
 
-### Add Medication
-![Add Medication](screenshots/add-medication.png)  
-*Page to add a new medication including dosage, schedule, and reminders.*
+```bash
+git clone https://github.com/Mouad852/MedReminder.git
+cd MedReminder
 
-### Specialty Selection
-![Specialty](screenshots/specialty.png)  
-*Dropdown or selection of doctor specialties when booking an appointment.*
+cd med-reminder-backend
+npm install
+npx prisma generate
+npx prisma migrate dev
 
-### Appointment Details
-![Appointment Details](screenshots/appointment-details.png)  
-*Detailed view of a single appointment with options to mark as done or reschedule.*
+cd ../med-reminder-frontend
+npm install
+```
 
-### Footer
-![Footer](screenshots/footer.png)  
-*Footer section with contact info, social media links, and app version.*
+Start the backend's local Compose environment from `med-reminder-backend/`:
 
+```bash
+docker compose up --build
+```
 
----
+For host-based development, run the API and client in separate terminals:
 
-## 🛠️ Technology Stack
+```bash
+# Terminal 1
+cd med-reminder-backend
+npm run start:dev
 
-### **Frontend**
-- **React** – UI framework
-- **Tailwind CSS** – Styling and responsive design
-- **JavaScript/TypeScript** – Frontend logic
-- **Vite** – Build tool
-- **Axios** – API calls
-- **React Router** – Navigation
+# Terminal 2
+cd med-reminder-frontend
+npm run dev
+```
 
-### **Backend**
-- **NestJS** – Node.js framework for scalable backend
-- **Prisma ORM** – Database management and migrations
-- **JWT / Passport** – Authentication and authorization
-- **Socket.IO** – Real-time notifications
-- **Bull / Redis** – Background jobs for reminders
+The project historically documents the frontend on `http://localhost:5173` and the API on `http://localhost:3000`; verify environment variables and actual port mappings in the relevant package or Compose configuration before use.
 
-### **Database**
-- **MongoDB** – NoSQL database
+## Demo and scope
 
-### **DevOps & Deployment**
-- **Docker** – Containerization
-- **Docker Compose** – Multi-container orchestration
+[Watch the recorded walkthrough on YouTube](https://youtu.be/sdr5R-KdctQ).
 
----
+The repository includes screenshots and setup material, but it does not include a public production-deployment claim or a documented automated test suite at the root. Treat the README as a guide to the checked-in project, not evidence of a hosted healthcare service.
 
-## 📁 Project Structure
+## Future work
 
-medreminder/
-├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ ├── pages/
-│ │ ├── services/
-│ │ └── styles/
-│ └── public/
-├── backend/
-│ ├── src/
-│ │ ├── modules/
-│ │ ├── guards/
-│ │ ├── services/
-│ │ └── prisma/
-│ └── docker/
-├── screenshots/ # Project screenshots
-├── docker-compose.yml
-└── README.md
-
-yaml
-Copy code
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- Docker & Docker Compose
-
-## 🚀 Getting Started
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Mouad852/medreminder.git
-   cd medreminder
-
-2. **Backend Setup**
-   ```bash
-   Copy code
-   cd backend
-   npm install
-   npx prisma generate
-   npx prisma migrate dev
-
-3. **Frontend Setup**
-   ```bash
-   Copy code
-   cd frontend
-   npm install
-
-4. **Run with Docker** (Recommended)
-   ```bash
-   Copy code
-   docker-compose up --build
-Frontend: http://localhost:5173
-
-Backend API: http://localhost:3000
-
-5. **Run without Docker**
-   ```bash
-   Copy code
-   # Backend
-   cd backend && npm run start:dev
-   
-   # Frontend (in another terminal)
-   cd frontend && npm run dev
-
-
-
-
-📈 Future Enhancements
-Mobile App (React Native / Flutter)
-
-AI-Powered Recommendations for medication timing
-
-Family Sharing – Allow family members to monitor adherence
-
-Telemedicine Integration – Virtual consultations
-
-Analytics Dashboard for healthcare providers
-
-Multi-language Support
-
-Voice-Activated Reminders (Google Assistant/Alexa integration)
-
-
-
-
-
-## 🎬 Demo Video
-
-You can watch a live demo of the MedReminder application on YouTube:
-
-[![Watch the Demo]](https://youtu.be/sdr5R-KdctQ)
-
-
-
+Ideas retained from the original project notes include mobile clients, family sharing, telemedicine integrations, provider analytics, multilingual support, and voice-activated reminders.
